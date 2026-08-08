@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1083005565177768858}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BulletSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 535559075149774838}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.506}
+  m_LocalPosition: {x: 0, y: 3.42, z: 1.51}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5380923352084320981}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GroundCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -137,7 +137,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 63
+    m_Bits: 959
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -230,9 +230,9 @@ GameObject:
   - component: {fileID: 2025321463599377051}
   - component: {fileID: 8237474124157357560}
   - component: {fileID: 3430187911660866209}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body
-  m_TagString: Untagged
+  m_TagString: Target
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -246,8 +246,8 @@ Transform:
   m_GameObject: {fileID: 3405683708891237455}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2, y: 1.8, z: 1.2}
+  m_LocalPosition: {x: 0, y: 0, z: 0.08}
+  m_LocalScale: {x: 0.01, y: 2.06, z: 0.49}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1460589531626556574}
@@ -345,7 +345,8 @@ GameObject:
   - component: {fileID: 8410814249471474377}
   - component: {fileID: 8256846442387906919}
   - component: {fileID: 7407517298029641312}
-  m_Layer: 0
+  - component: {fileID: 4759332914702523576}
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -489,6 +490,25 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &4759332914702523576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3517313153411689609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7653b2d2da7c8604d84a914b7ae6530b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth: 100
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 100
 --- !u!1 &7604798940525122471
 GameObject:
   m_ObjectHideFlags: 0
@@ -502,7 +522,7 @@ GameObject:
   - component: {fileID: 8161313083113582308}
   - component: {fileID: 3014776781766353198}
   - component: {fileID: 8474251381366643298}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: DummyWeapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -518,8 +538,8 @@ Transform:
   m_GameObject: {fileID: 7604798940525122471}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.4749999, z: 0.758}
-  m_LocalScale: {x: 0.2, y: 0.1, z: 1}
+  m_LocalPosition: {x: 0, y: -0.4749999, z: 0.9}
+  m_LocalScale: {x: 0.2, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1083005565177768858}
@@ -638,7 +658,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9e45f08263cdef47ac872e2ec3c130d, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.45
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9e45f08263cdef47ac872e2ec3c130d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -650,7 +670,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9e45f08263cdef47ac872e2ec3c130d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.113
+      value: -0.074
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9e45f08263cdef47ac872e2ec3c130d, type: 3}
       propertyPath: m_LocalRotation.w

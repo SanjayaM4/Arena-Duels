@@ -1,5 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode.Components;
+using System.Collections;
 
 public class PlayerMovement : NetworkBehaviour
 {
@@ -45,5 +47,33 @@ public class PlayerMovement : NetworkBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+        {
+            StartCoroutine(TeleportToSpawnNextFrame());
+        }
+    }
+
+    private IEnumerator TeleportToSpawnNextFrame()
+    {
+        yield return null; // always wait at least one frame, regardless of anything else
+
+        while (SpawnPoints.Instance == null)
+        {
+            yield return null; // extra safety wait for the client case, if needed
+        }
+
+        Transform spawnPoint = (OwnerClientId == 0) ? SpawnPoints.Instance.spawnPointA : SpawnPoints.Instance.spawnPointB;
+
+        NetworkTransform netTransform = GetComponent<NetworkTransform>();
+        if (netTransform != null)
+        {
+            netTransform.Teleport(spawnPoint.position, spawnPoint.rotation, transform.localScale);
+        }
+
+        Debug.Log("Teleported OwnerClientId " + OwnerClientId + " to " + (OwnerClientId == 0 ? "A" : "B"));
     }
 }

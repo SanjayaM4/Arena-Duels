@@ -5,14 +5,20 @@ public class Bullet : NetworkBehaviour
 {
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsServer) return;
-        if (!NetworkObject.IsSpawned) return; // safety guard against the exact race you hit
+        Debug.Log("Bullet collided with: " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ")");
+    
 
-        if (collision.gameObject.CompareTag("Target"))
+        if (!IsServer) return;
+        if (!NetworkObject.IsSpawned) return;
+
+    if (collision.gameObject.CompareTag("Target"))
+    {
+        Health targetHealth = collision.gameObject.GetComponentInParent<Health>();
+        if (targetHealth != null)
         {
-            Debug.Log("hit " + collision.gameObject.name + " !");
-            // apply damage here
+            targetHealth.TakeDamage(10);
         }
+    }
 
         NetworkObject.Despawn();
     }

@@ -22,10 +22,15 @@ public class Weapon : NetworkBehaviour
     {
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, spawnRot);
 
-        Physics.IgnoreCollision(bullet.GetComponent<Collider>(), GetComponent<Collider>());
+        Collider shooterCollider = GetComponentInParent<Collider>(); // looks up the hierarchy, not just this object
+        Collider bulletCollider = bullet.GetComponent<Collider>();
 
-        bullet.GetComponent<NetworkObject>().Spawn(true); // spawn first
+        if (shooterCollider != null && bulletCollider != null)
+        {
+            Physics.IgnoreCollision(bulletCollider, shooterCollider);
+        }
 
-        bullet.GetComponent<Rigidbody>().AddForce(spawnRot * Vector3.forward * bulletVelocity, ForceMode.Impulse); // then apply force
+        bullet.GetComponent<NetworkObject>().Spawn(true);
+        bullet.GetComponent<Rigidbody>().AddForce(spawnRot * Vector3.forward * bulletVelocity, ForceMode.Impulse);
     }
 }
