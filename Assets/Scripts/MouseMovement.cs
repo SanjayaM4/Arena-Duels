@@ -9,19 +9,27 @@ public class MouseMovement : NetworkBehaviour
 
     float xRotation = 0f;
 
+    public Transform playerModelRoot;
+
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
         {
             if (playerCamera != null)
             {
-                playerCamera.enabled = false; // disable rendering only
+                playerCamera.enabled = false;
 
                 AudioListener listener = playerCamera.GetComponent<AudioListener>();
-                if (listener != null) listener.enabled = false; // avoid duplicate audio listeners
+                if (listener != null) listener.enabled = false;
             }
             enabled = false;
             return;
+        }
+
+        // Only hide the model from your OWN camera, not from other players
+        if (playerModelRoot != null)
+        {
+            SetLayerRecursively(playerModelRoot.gameObject, LayerMask.NameToLayer("PlayerModel"));
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -38,5 +46,14 @@ public class MouseMovement : NetworkBehaviour
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         playerBody.Rotate(Vector3.up * mouseX);
+    }
+
+    private void SetLayerRecursively(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursively(child.gameObject, layer);
+        }
     }
 }
