@@ -3,22 +3,30 @@ using UnityEngine;
 
 public class Bullet : NetworkBehaviour
 {
+    [HideInInspector] public ulong shooterClientId;
+
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Bullet collided with: " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ")");
-    
-
         if (!IsServer) return;
         if (!NetworkObject.IsSpawned) return;
 
-    if (collision.gameObject.CompareTag("Target"))
-    {
-        Health targetHealth = collision.gameObject.GetComponentInParent<Health>();
-        if (targetHealth != null)
+        if (collision.gameObject.CompareTag("Target"))
         {
-            targetHealth.TakeDamage(10);
+            NetworkObject hitNetworkObject = collision.gameObject.GetComponentInParent<NetworkObject>();
+
+            // skip damage if the bullet hit its own shooter
+            if (hitNetworkObject != null && hitNetworkObject.OwnerClientId == shooterClientId)
+            {
+                NetworkObject.Despawn();
+                return;
+            }
+
+            Health targetHealth = collision.gameObject.GetComponentInParent<Health>();
+            if (targetHealth != null)
+            {
+                targetHealth.TakeDamage(10);
+            }
         }
-    }
 
         NetworkObject.Despawn();
     }

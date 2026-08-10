@@ -3,16 +3,22 @@ using UnityEngine;
 
 public class Weapon : NetworkBehaviour
 {
-    public GameObject bulletPrefab; // this prefab needs a NetworkObject component now
+    public GameObject bulletPrefab;
     public Transform bulletSpawn;
     public float bulletVelocity = 30;
+    public float fireRate = 0.5f; // seconds between shots - adjust to taste
+    private float nextFireTime = 0f;
+    public AudioSource audioSource;
+    public AudioClip shootSound;
+
 
     void Update()
     {
         if (!IsOwner) return; // only fire when it's your own weapon
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (Input.GetKeyDown(KeyCode.Mouse0) && Time.time >= nextFireTime)
         {
+            nextFireTime = Time.time + fireRate;
             FireServerRpc(bulletSpawn.position, bulletSpawn.rotation);
         }
     }
@@ -22,9 +28,11 @@ public class Weapon : NetworkBehaviour
     {
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, spawnRot);
 
-        Collider shooterCollider = GetComponentInParent<Collider>(); // looks up the hierarchy, not just this object
-        Collider bulletCollider = bullet.GetComponent<Collider>();
+        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        bulletScript.shooterClientId = OwnerClientId; // record who fired this
 
+        Collider shooterCollider = GetComponentInParent<Collider>();
+        Collider bulletCollider = bullet.GetComponent<Collider>();
         if (shooterCollider != null && bulletCollider != null)
         {
             Physics.IgnoreCollision(bulletCollider, shooterCollider);
@@ -32,5 +40,16 @@ public class Weapon : NetworkBehaviour
 
         bullet.GetComponent<NetworkObject>().Spawn(true);
         bullet.GetComponent<Rigidbody>().AddForce(spawnRot * Vector3.forward * bulletVelocity, ForceMode.Impulse);
+
+        FireClientRpc();
+    }
+
+    [ClientRpc]
+    private void FireClientRpc()
+    {
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound);
+        }
     }
 }
