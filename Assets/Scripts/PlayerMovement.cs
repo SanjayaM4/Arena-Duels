@@ -76,4 +76,12 @@ public class PlayerMovement : NetworkBehaviour
 
         Debug.Log("Teleported OwnerClientId " + OwnerClientId + " to " + (OwnerClientId == 0 ? "A" : "B"));
     }
+
+    public void ResetToSpawn()
+    {
+        if (IsOwner)
+        {
+            StartCoroutine(TeleportToSpawnNextFrame());
+        }
+    }
 }

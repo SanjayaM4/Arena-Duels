@@ -7,16 +7,25 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class RelayTestUI : MonoBehaviour
 {
-    private string joinCodeInput = "";
-    private string statusMessage = "";
+    public Button hostButton;
+    public Button joinButton;
+    public TMP_InputField joinCodeInputField;
+    public TextMeshProUGUI statusText;
+
     private bool isBusy = false;
 
     async void Start()
     {
-        // Sign in anonymously as soon as the game starts
+        hostButton.onClick.AddListener(OnHostClicked);
+        joinButton.onClick.AddListener(OnJoinClicked);
+
+        SetStatus("Signing in...");
+
         try
         {
             await UnityServices.InitializeAsync();
@@ -26,52 +35,43 @@ public class RelayTestUI : MonoBehaviour
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
             }
 
-            statusMessage = "Signed in. Ready.";
+            SetStatus("Signed in. Ready.");
         }
         catch (System.Exception e)
         {
-            statusMessage = "Auth failed: " + e.Message;
+            SetStatus("Auth failed: " + e.Message);
         }
     }
 
-    void OnGUI()
+    void OnHostClicked()
     {
-        GUILayout.BeginArea(new Rect(10, 10, 300, 250));
+        _ = StartHostWithRelay();
+    }
 
-        GUILayout.Label("Status: " + statusMessage);
+    void OnJoinClicked()
+    {
+        _ = StartClientWithRelay(joinCodeInputField.text);
+    }
 
-        if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
-        {
-            if (!isBusy && GUILayout.Button("Host (Create Relay)"))
-            {
-                _ = StartHostWithRelay();
-            }
+    private void SetStatus(string message)
+    {
+        statusText.text = message;
+    }
 
-            GUILayout.Space(10);
-            GUILayout.Label("Join Code:");
-            joinCodeInput = GUILayout.TextField(joinCodeInput);
-
-            if (!isBusy && GUILayout.Button("Join as Client"))
-            {
-                _ = StartClientWithRelay(joinCodeInput);
-            }
-        }
-        else
-        {
-            GUILayout.Label("Mode: " + (NetworkManager.Singleton.IsHost ? "Host" : "Client"));
-        }
-
-        GUILayout.EndArea();
+    private void SetInteractable(bool interactable)
+    {
+        hostButton.interactable = interactable;
+        joinButton.interactable = interactable;
     }
 
     private async Task StartHostWithRelay()
     {
         isBusy = true;
-        statusMessage = "Creating relay allocation...";
+        SetInteractable(false);
+        SetStatus("Creating relay allocation...");
 
         try
         {
-            // "1" here means 1 other player besides the host - adjust if you ever support more
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
@@ -81,12 +81,13 @@ public class RelayTestUI : MonoBehaviour
 
             NetworkManager.Singleton.StartHost();
 
-            statusMessage = "Hosting! Join Code: " + joinCode;
-            joinCodeInput = joinCode; // so you can see/copy it from the field too
+            SetStatus("Hosting! Join Code: " + joinCode);
+            joinCodeInputField.text = joinCode; // shown for convenience, so you can copy it
         }
         catch (System.Exception e)
         {
-            statusMessage = "Host failed: " + e.Message;
+            SetStatus("Host failed: " + e.Message);
+            SetInteractable(true);
         }
 
         isBusy = false;
@@ -96,12 +97,13 @@ public class RelayTestUI : MonoBehaviour
     {
         if (string.IsNullOrEmpty(joinCode))
         {
-            statusMessage = "Enter a join code first.";
+            SetStatus("Enter a join code first.");
             return;
         }
 
         isBusy = true;
-        statusMessage = "Joining relay...";
+        SetInteractable(false);
+        SetStatus("Joining relay...");
 
         try
         {
@@ -113,11 +115,12 @@ public class RelayTestUI : MonoBehaviour
 
             NetworkManager.Singleton.StartClient();
 
-            statusMessage = "Joined!";
+            SetStatus("Joined!");
         }
         catch (System.Exception e)
         {
-            statusMessage = "Join failed: " + e.Message;
+            SetStatus("Join failed: " + e.Message);
+            SetInteractable(true);
         }
 
         isBusy = false;

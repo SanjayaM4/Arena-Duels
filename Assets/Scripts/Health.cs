@@ -39,8 +39,10 @@ public class Health : NetworkBehaviour
     [ClientRpc]
     private void HandleDeathClientRpc()
     {
-        // runs on every client - use this to disable input, show win/lose text, etc.
-        // e.g.: if (IsOwner) show "You Lose" else show "You Win"
-        Debug.Log(IsOwner ? "You lose!" : "Opponent defeated!");
+        bool localPlayerLost = IsOwner;
+        GameUIManager.Instance.ShowEndScreen(!localPlayerLost);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
