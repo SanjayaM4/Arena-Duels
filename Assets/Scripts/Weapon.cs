@@ -10,6 +10,7 @@ public class Weapon : NetworkBehaviour
     private float nextFireTime = 0f;
     public AudioSource audioSource;
     public AudioClip shootSound;
+    public Animator animator;
 
 
     void Update()
@@ -50,6 +51,11 @@ public class Weapon : NetworkBehaviour
         if (audioSource != null && shootSound != null)
         {
             audioSource.PlayOneShot(shootSound);
+        }
+
+        if (animator != null)
+        {
+            animator.SetTrigger("Shoot");
         }
     }
 }

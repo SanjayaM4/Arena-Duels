@@ -14,6 +14,8 @@ public class PlayerMovement : NetworkBehaviour
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
+    public Animator animator;
+    public float killY = -10f;
 
     Vector3 velocity;
     bool isGrounded;
@@ -47,6 +49,15 @@ public class PlayerMovement : NetworkBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+        float horizontalSpeed = new Vector3(move.x, 0, move.z).magnitude;
+        animator.SetFloat("Speed", horizontalSpeed);
+        animator.SetBool("IsGrounded", isGrounded);
+
+        if (transform.position.y < killY)
+        {
+            RequestKillServerRpc();
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -83,5 +94,12 @@ public class PlayerMovement : NetworkBehaviour
         {
             StartCoroutine(TeleportToSpawnNextFrame());
         }
+    }
+
+    [ServerRpc]
+    private void RequestKillServerRpc()
+    {
+        Health health = GetComponent<Health>();
+        if (health != null) health.Kill();
     }
 }

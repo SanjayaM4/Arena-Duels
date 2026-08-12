@@ -36,6 +36,14 @@ public class Health : NetworkBehaviour
         }
     }
 
+    public void Kill()
+    {
+        if (!IsServer) return;
+
+        currentHealth.Value = 0;
+        HandleDeathClientRpc();
+    }
+
     [ClientRpc]
     private void HandleDeathClientRpc()
     {
