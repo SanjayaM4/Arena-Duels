@@ -84,8 +84,6 @@ public class PlayerMovement : NetworkBehaviour
         {
             netTransform.Teleport(spawnPoint.position, spawnPoint.rotation, transform.localScale);
         }
-
-        Debug.Log("Teleported OwnerClientId " + OwnerClientId + " to " + (OwnerClientId == 0 ? "A" : "B"));
     }
 
     public void ResetToSpawn()
