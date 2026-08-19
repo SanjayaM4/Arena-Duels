@@ -63,6 +63,12 @@ public class RelayTestUI : MonoBehaviour
         hostButton.interactable = interactable;
         joinButton.interactable = interactable;
     }
+    
+    public void ResetButtons()
+    {
+        SetInteractable(true);
+        SetStatus("Ready.");
+    }
 
     private async Task StartHostWithRelay()
     {

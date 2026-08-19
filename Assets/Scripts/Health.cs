@@ -4,6 +4,7 @@ using UnityEngine;
 public class Health : NetworkBehaviour
 {
     public int maxHealth = 100;
+    private bool isDead = false;
 
     // NetworkVariable automatically syncs its value from server to all clients
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(
@@ -23,25 +24,30 @@ public class Health : NetworkBehaviour
     // Only ever call this server-side (e.g. from Bullet.cs, which already checks IsServer)
     public void TakeDamage(int amount)
     {
-        if (!IsServer) return;
-
-        Debug.Log("TakeDamage called on " + gameObject.name + " for " + amount);
+        if (!IsServer || isDead) return;
 
         currentHealth.Value -= amount;
 
         if (currentHealth.Value <= 0)
         {
             currentHealth.Value = 0;
+            isDead = true;
             HandleDeathClientRpc();
         }
     }
 
     public void Kill()
     {
-        if (!IsServer) return;
+        if (!IsServer || isDead) return;
 
         currentHealth.Value = 0;
+        isDead = true;
         HandleDeathClientRpc();
+    }
+
+    public void ResetDeathState()
+    {
+        isDead = false;
     }
 
     [ClientRpc]

@@ -14,6 +14,8 @@ public abstract class WeaponBase : NetworkBehaviour
 
     private float nextFireTime = 0f;
 
+    public ParticleSystem muzzleFlash;
+
     void Update()
     {
         if (!IsOwner) return;
@@ -50,11 +52,26 @@ public abstract class WeaponBase : NetworkBehaviour
         {
             animator.SetTrigger("Shoot");
         }
+
+        if (muzzleFlash != null)
+        {
+            muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); // force-clear any current state first
+            muzzleFlash.Play();
+            StartCoroutine(StopMuzzleFlashAfterDelay(0.2f));
+        }
     }
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
+        {
+            SetLayerRecursively(gameObject, LayerMask.NameToLayer("PlayerModel"));
+        }
+    }
+
+    void OnEnable()
+    {
+        if (NetworkObject != null && NetworkObject.IsSpawned && !IsOwner)
         {
             SetLayerRecursively(gameObject, LayerMask.NameToLayer("PlayerModel"));
         }
@@ -66,6 +83,15 @@ public abstract class WeaponBase : NetworkBehaviour
         foreach (Transform child in obj.transform)
         {
             SetLayerRecursively(child.gameObject, layer);
+        }
+    }
+
+    private System.Collections.IEnumerator StopMuzzleFlashAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (muzzleFlash != null)
+        {
+            muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
     }
 }

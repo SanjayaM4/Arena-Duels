@@ -19,7 +19,11 @@ public class GameManager : NetworkBehaviour
             if (playerObj == null) continue;
 
             Health health = playerObj.GetComponent<Health>();
-            if (health != null) health.currentHealth.Value = health.maxHealth;
+            if (health != null)
+            {
+                health.currentHealth.Value = health.maxHealth;
+                health.ResetDeathState();
+            }
         }
 
         RematchClientRpc();
@@ -43,7 +47,16 @@ public class GameManager : NetworkBehaviour
 
     public void LeaveRoom()
     {
+        Debug.Log("LeaveRoom called");
+
         NetworkManager.Singleton.Shutdown();
+        Debug.Log("NetworkManager.Shutdown() called");
+
         GameUIManager.Instance.ShowMenu();
+        Debug.Log("ShowMenu() called");
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        Debug.Log("Cursor unlocked");
     }
 }

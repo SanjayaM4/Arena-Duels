@@ -9,46 +9,70 @@ public class HitscanWeapon : WeaponBase
     private Vector3 lastHitPoint; // used for the tracer visual
     public LineRenderer tracerLine;
     public float tracerDuration = 0.05f;
+    public GameObject hitEffectPrefab;
 
     protected override void OnFireServer(Vector3 spawnPos, Quaternion spawnRot)
     {
         Ray ray = new Ray(spawnPos, spawnRot * Vector3.forward);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, range, hitMask))
+        RaycastHit[] hits = Physics.RaycastAll(ray, range, hitMask);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        bool didHit = false;
+        RaycastHit validHit = default;
+
+        foreach (RaycastHit h in hits)
         {
-            lastHitPoint = hit.point;
+            NetworkObject hitNetworkObject = h.collider.GetComponentInParent<NetworkObject>();
 
-            if (hit.collider.CompareTag("Target"))
+            // skip anything that belongs to yourself - keep checking further along the ray
+            if (hitNetworkObject != null && hitNetworkObject.OwnerClientId == OwnerClientId)
             {
-                NetworkObject hitNetworkObject = hit.collider.GetComponentInParent<NetworkObject>();
+                continue;
+            }
 
-                // skip self-damage, same pattern as Bullet.cs
-                if (hitNetworkObject != null && hitNetworkObject.OwnerClientId != OwnerClientId)
+            validHit = h;
+            didHit = true;
+            break; // first valid (non-self) hit wins
+        }
+
+        if (didHit)
+        {
+            lastHitPoint = validHit.point;
+
+            if (validHit.collider.CompareTag("Target"))
+            {
+                Health targetHealth = validHit.collider.GetComponentInParent<Health>();
+                if (targetHealth != null)
                 {
-                    Health targetHealth = hit.collider.GetComponentInParent<Health>();
-                    if (targetHealth != null)
-                    {
-                        targetHealth.TakeDamage(damage);
-                    }
+                    targetHealth.TakeDamage(damage);
                 }
             }
         }
         else
         {
-            lastHitPoint = spawnPos + ray.direction * range; // no hit - tracer goes max range
+            lastHitPoint = spawnPos + ray.direction * range;
         }
 
-        ShowTracerClientRpc(spawnPos, lastHitPoint);
+        ShowTracerClientRpc(spawnPos, lastHitPoint, didHit);
     }
 
 
     [ClientRpc]
-    private void ShowTracerClientRpc(Vector3 start, Vector3 end)
+    private void ShowTracerClientRpc(Vector3 start, Vector3 end, bool didHit)
     {
         if (tracerLine != null)
         {
-            StopAllCoroutines(); // in case of rapid-fire, restart cleanly rather than stacking
+            StopAllCoroutines();
             StartCoroutine(DrawTracer(start, end));
+        }
+
+        if (hitEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(hitEffectPrefab, end, Quaternion.identity);
+            ParticleSystem ps = effect.GetComponent<ParticleSystem>();
+            if (ps != null) ps.Play();
+            Destroy(effect, 2f);
         }
     }
 

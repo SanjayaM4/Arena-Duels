@@ -30,6 +30,8 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowGameplay()
     {
+        Debug.Log("ShowGameplay called - this might be firing unexpectedly");
+
         menuPanel.SetActive(false);
         gameplayPanel.SetActive(true);
         endPanel.SetActive(false);
@@ -37,6 +39,8 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowEndScreen(bool localPlayerWon)
     {
+        Debug.Log("ShowEndScreen called - this might be firing unexpectedly");
+
         menuPanel.SetActive(false);
         gameplayPanel.SetActive(false);
         endPanel.SetActive(true);
@@ -45,9 +49,13 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowMenu()
     {
+        Debug.Log("ShowMenu running - menuPanel: " + (menuPanel != null) + ", current active state: " + menuPanel.activeSelf);
+
         menuPanel.SetActive(true);
         gameplayPanel.SetActive(false);
         endPanel.SetActive(false);
+
+        Debug.Log("ShowMenu finished - menuPanel now active: " + menuPanel.activeSelf + ", endPanel now active: " + endPanel.activeSelf);
     }
 
     void OnRematchClicked()
