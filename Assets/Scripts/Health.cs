@@ -40,6 +40,8 @@ public class Health : NetworkBehaviour
     {
         if (!IsServer || isDead) return;
 
+        Debug.Log("[Frame " + Time.frameCount + "] Health.Kill() executing on " + gameObject.name);
+
         currentHealth.Value = 0;
         isDead = true;
         HandleDeathClientRpc();
@@ -47,6 +49,7 @@ public class Health : NetworkBehaviour
 
     public void ResetDeathState()
     {
+        Debug.Log("[Frame " + Time.frameCount + "] ResetDeathState called on " + gameObject.name);
         isDead = false;
     }
 

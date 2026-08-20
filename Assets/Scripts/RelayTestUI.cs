@@ -24,6 +24,8 @@ public class RelayTestUI : MonoBehaviour
         hostButton.onClick.AddListener(OnHostClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
 
+        NetworkManager.Singleton.OnTransportFailure += OnTransportFailure;
+
         SetStatus("Signing in...");
 
         try
@@ -45,11 +47,13 @@ public class RelayTestUI : MonoBehaviour
 
     void OnHostClicked()
     {
+        Debug.Log("Host button clicked");
         _ = StartHostWithRelay();
     }
 
     void OnJoinClicked()
     {
+        Debug.Log("Join button clicked");
         _ = StartClientWithRelay(joinCodeInputField.text);
     }
 
@@ -113,13 +117,51 @@ public class RelayTestUI : MonoBehaviour
 
         try
         {
-            JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            Task<JoinAllocation> joinTask = RelayService.Instance.JoinAllocationAsync(joinCode);
+            Task relayTimeout = Task.Delay(10000);
+
+            Task completed = await Task.WhenAny(joinTask, relayTimeout);
+            if (completed == relayTimeout)
+            {
+                SetStatus("Join timed out. Check the code and try again.");
+                SetInteractable(true);
+                isBusy = false;
+                return;
+            }
+
+            JoinAllocation joinAllocation = await joinTask;
 
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             RelayServerData relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "dtls");
             transport.SetRelayServerData(relayServerData);
 
+            SetStatus("Connecting...");
+
+            var connectionResult = new TaskCompletionSource<bool>();
+            void OnConnected(ulong id) => connectionResult.TrySetResult(true);
+            void OnFailed() => connectionResult.TrySetResult(false);
+
+            NetworkManager.Singleton.OnClientConnectedCallback += OnConnected;
+            NetworkManager.Singleton.OnTransportFailure += OnFailed;
+
             NetworkManager.Singleton.StartClient();
+
+            Task connectTimeout = Task.Delay(10000);
+            Task connectFinished = await Task.WhenAny(connectionResult.Task, connectTimeout);
+
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnConnected;
+            NetworkManager.Singleton.OnTransportFailure -= OnFailed;
+
+            bool succeeded = connectFinished == connectionResult.Task && connectionResult.Task.Result;
+
+            if (!succeeded)
+            {
+                SetStatus("Connection failed or timed out.");
+                NetworkManager.Singleton.Shutdown(); // manually abort the stuck attempt
+                SetInteractable(true);
+                isBusy = false;
+                return;
+            }
 
             SetStatus("Joined!");
         }
@@ -127,8 +169,23 @@ public class RelayTestUI : MonoBehaviour
         {
             SetStatus("Join failed: " + e.Message);
             SetInteractable(true);
+            NetworkManager.Singleton.Shutdown(); // in case it got partway connected before erroring
         }
 
         isBusy = false;
+    }
+
+    void OnTransportFailure()
+    {
+        Debug.LogError("Transport failure - resetting UI");
+        SetStatus("Connection failed. Try again.");
+        SetInteractable(true);
+        isBusy = false;
+    }
+
+    void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnTransportFailure -= OnTransportFailure;
     }
 }

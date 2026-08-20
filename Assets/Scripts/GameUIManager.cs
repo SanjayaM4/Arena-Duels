@@ -12,6 +12,8 @@ public class GameUIManager : MonoBehaviour
     public Button rematchButton;
     public Button leaveRoomButton;
     public GameObject menuPanel;
+    public HealthBarUI healthBarUI;
+    public Camera menuCamera;
 
     void Awake()
     {
@@ -23,6 +25,7 @@ public class GameUIManager : MonoBehaviour
         menuPanel.SetActive(true);
         gameplayPanel.SetActive(false);
         endPanel.SetActive(false);
+        menuCamera.gameObject.SetActive(true);
 
         rematchButton.onClick.AddListener(OnRematchClicked);
         leaveRoomButton.onClick.AddListener(OnLeaveRoomClicked);
@@ -30,17 +33,14 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowGameplay()
     {
-        Debug.Log("ShowGameplay called - this might be firing unexpectedly");
-
         menuPanel.SetActive(false);
         gameplayPanel.SetActive(true);
         endPanel.SetActive(false);
+        menuCamera.gameObject.SetActive(false); // player's own camera takes over
     }
 
     public void ShowEndScreen(bool localPlayerWon)
     {
-        Debug.Log("ShowEndScreen called - this might be firing unexpectedly");
-
         menuPanel.SetActive(false);
         gameplayPanel.SetActive(false);
         endPanel.SetActive(true);
@@ -49,17 +49,18 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowMenu()
     {
-        Debug.Log("ShowMenu running - menuPanel: " + (menuPanel != null) + ", current active state: " + menuPanel.activeSelf);
-
         menuPanel.SetActive(true);
         gameplayPanel.SetActive(false);
         endPanel.SetActive(false);
+        menuCamera.gameObject.SetActive(true);
 
-        Debug.Log("ShowMenu finished - menuPanel now active: " + menuPanel.activeSelf + ", endPanel now active: " + endPanel.activeSelf);
+        RelayTestUI relayUI = menuPanel.GetComponentInChildren<RelayTestUI>();
+        if (relayUI != null) relayUI.ResetButtons();
     }
 
     void OnRematchClicked()
     {
+        Debug.Log("Rematch clicked");
         GameManager.Instance.RequestRematchServerRpc();
     }
 

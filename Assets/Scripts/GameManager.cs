@@ -13,25 +13,35 @@ public class GameManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void RequestRematchServerRpc()
     {
+        Debug.Log("RequestRematchServerRpc RECEIVED on server");
+
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
             var playerObj = client.PlayerObject;
-            if (playerObj == null) continue;
+            if (playerObj == null)
+            {
+                Debug.LogWarning("PlayerObject null for client " + client.ClientId);
+                continue;
+            }
 
             Health health = playerObj.GetComponent<Health>();
             if (health != null)
             {
                 health.currentHealth.Value = health.maxHealth;
                 health.ResetDeathState();
+                Debug.Log("Reset health for client " + client.ClientId);
             }
         }
 
         RematchClientRpc();
+        Debug.Log("RematchClientRpc sent");
     }
 
     [ClientRpc]
     private void RematchClientRpc()
     {
+        Debug.Log("RematchClientRpc RECEIVED on client, IsOwner: " + IsOwner);
+
         GameUIManager.Instance.ShowGameplay();
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -47,16 +57,12 @@ public class GameManager : NetworkBehaviour
 
     public void LeaveRoom()
     {
-        Debug.Log("LeaveRoom called");
 
         NetworkManager.Singleton.Shutdown();
-        Debug.Log("NetworkManager.Shutdown() called");
 
         GameUIManager.Instance.ShowMenu();
-        Debug.Log("ShowMenu() called");
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        Debug.Log("Cursor unlocked");
     }
 }

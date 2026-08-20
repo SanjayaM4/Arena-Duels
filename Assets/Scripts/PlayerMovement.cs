@@ -20,6 +20,9 @@ public class PlayerMovement : NetworkBehaviour
     Vector3 velocity;
     bool isGrounded;
 
+    private bool spawnProtected = true;
+    private bool isDead = false;
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -27,7 +30,9 @@ public class PlayerMovement : NetworkBehaviour
 
     void Update()
     {
-        if (!IsOwner) return; // only move the player YOU control
+        if (!IsOwner) return;
+
+        if (isDead) return; // freeze completely while dead - no more gravity accumulation, no more movement
 
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
@@ -54,8 +59,10 @@ public class PlayerMovement : NetworkBehaviour
         animator.SetFloat("Speed", horizontalSpeed);
         animator.SetBool("IsGrounded", isGrounded);
 
-        if (transform.position.y < killY)
+        if (!spawnProtected && transform.position.y < killY)
         {
+            Debug.Log("[Frame " + Time.frameCount + "] KILL CHECK FAILED. position.y=" + transform.position.y + " killY=" + killY + " velocity.y=" + velocity.y);
+            isDead = true;
             RequestKillServerRpc();
         }
     }
@@ -70,20 +77,33 @@ public class PlayerMovement : NetworkBehaviour
 
     private IEnumerator TeleportToSpawnNextFrame()
     {
-        yield return null; // always wait at least one frame, regardless of anything else
+        spawnProtected = true;
+        isDead = false;
+        velocity = Vector3.zero;
+
+        yield return null;
 
         while (SpawnPoints.Instance == null)
         {
-            yield return null; // extra safety wait for the client case, if needed
+            yield return null;
         }
 
         Transform spawnPoint = (OwnerClientId == 0) ? SpawnPoints.Instance.spawnPointA : SpawnPoints.Instance.spawnPointB;
+
+        controller.enabled = false; // NEW - detach CharacterController before moving
 
         NetworkTransform netTransform = GetComponent<NetworkTransform>();
         if (netTransform != null)
         {
             netTransform.Teleport(spawnPoint.position, spawnPoint.rotation, transform.localScale);
         }
+
+        controller.enabled = true; // NEW - re-attach now that position is correct
+
+        Debug.Log("[Frame " + Time.frameCount + "] Teleport complete, position now: " + transform.position);
+
+        yield return new WaitForSeconds(0.3f); // small buffer, not just 1 frame - covers any lingering settle time
+        spawnProtected = false;
     }
 
     public void ResetToSpawn()

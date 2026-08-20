@@ -43,4 +43,9 @@ public class HealthBarUI : MonoBehaviour
 
         if (foundCount == 2) bound = true; // stop checking once both are wired up
     }
+
+    public void ResetBinding()
+    {
+        bound = false;
+    }
 }
