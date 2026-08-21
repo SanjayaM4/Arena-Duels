@@ -2,6 +2,8 @@
 
 A 1v1 peer-to-peer multiplayer first-person shooter built in Unity, featuring networked movement, hitscan and projectile weapons, and a full match loop (host/join → combat → rematch).
 
+**[▶ Download on itch.io](https://obeahman4.itch.io/arena-duels)**
+
 ![Gameplay demo](docs/media/gameplay.gif)
 
 ## Overview
