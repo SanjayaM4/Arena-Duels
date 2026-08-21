@@ -2,6 +2,8 @@
 
 A 1v1 peer-to-peer multiplayer first-person shooter built in Unity, featuring networked movement, hitscan and projectile weapons, and a full match loop (host/join → combat → rematch).
 
+![Gameplay demo](docs/media/gameplay.gif)
+
 ## Overview
 
 Arena Duels is a small-scale competitive FPS built as a learning project to explore real-time multiplayer networking in Unity. Two players connect over the internet (no dedicated server required) and duel in a circular arena, with the last player standing winning the round.
